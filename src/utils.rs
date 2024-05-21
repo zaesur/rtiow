@@ -1,3 +1,5 @@
+use std::iter;
+
 use glm::Vec3;
 use rand::Rng;
 
@@ -15,8 +17,21 @@ pub fn random_vector(interval: Option<Interval>) -> Vec3 {
     }
 }
 
+pub fn random_vector_in_unit_sphere() -> Option<Vec3> {
+    iter::repeat_with(|| random_vector(Some(Interval::new(-1.0, 1.0))))
+        .filter(|vector| glm::length(vector) < 1.0)
+        .next()
+}
+
+pub fn random_unit_vector() -> Vec3 {
+    random_vector_in_unit_sphere()
+        .and_then(|vector| Some(vector.normalize()))
+        .expect("No unit vector found!")
+}
+
+#[allow(dead_code)]
 pub fn random_vector_on_hemisphere(normal: &Vec3) -> Vec3 {
-    let vector = random_vector(Some(Interval::new(-1.0, 1.0))).normalize();
+    let vector = random_unit_vector();
 
     if vector.dot(normal) > 0.0 {
         vector

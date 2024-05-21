@@ -5,7 +5,7 @@ use rand::Rng;
 use crate::hittable::Hittable;
 use crate::interval::Interval;
 use crate::ray::Ray;
-use crate::utils::random_vector_on_hemisphere;
+use crate::utils::random_unit_vector;
 
 pub struct Camera {
     image_width: u32,
@@ -91,7 +91,7 @@ impl Camera {
         if depth <= 0 {
             Vec3::new(0.0, 0.0, 0.0)
         } else if let Some(hr) = world.hit(&ray, &Interval::new(0.001, f32::INFINITY)) {
-            let direction = random_vector_on_hemisphere(&hr.normal);
+            let direction = hr.normal + random_unit_vector();
             0.5 * self.ray_color(&Ray::new(hr.p, direction), depth - 1, world)
         } else {
             let unit_direction = ray.direction;
@@ -103,10 +103,18 @@ impl Camera {
 
     fn write_color(color: Vec3) {
         let intensity = Interval::new(0.0, 0.999);
-        let ir = (256.0 * intensity.clamp(color.x)) as i32;
-        let ig = (256.0 * intensity.clamp(color.y)) as i32;
-        let ib = (256.0 * intensity.clamp(color.z)) as i32;
+        let ir = (256.0 * intensity.clamp(Camera::linear_to_gamma(color.x))) as i32;
+        let ig = (256.0 * intensity.clamp(Camera::linear_to_gamma(color.y))) as i32;
+        let ib = (256.0 * intensity.clamp(Camera::linear_to_gamma(color.z))) as i32;
 
         println!("{ir} {ig} {ib}");
+    }
+
+    pub fn linear_to_gamma(linear_component: f32) -> f32 {
+        if linear_component > 0.0 {
+            f32::sqrt(linear_component)
+        } else {
+            0.0
+        }
     }
 }
