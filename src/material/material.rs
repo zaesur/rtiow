@@ -1,6 +1,6 @@
 use glm::Vec3;
 
-use crate::geometry::hittable::HitRecord;
+use crate::geometry::hit_record::HitRecord;
 use crate::camera::ray::Ray;
 
 pub trait Material {

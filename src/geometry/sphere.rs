@@ -1,9 +1,11 @@
 use glm::Vec3;
 
-use crate::geometry::hittable::{HitRecord, Hittable};
 use crate::math::interval::Interval;
 use crate::material::material::Material;
 use crate::camera::ray::Ray;
+
+use super::geometry::Geometry;
+use super::hit_record::HitRecord;
 
 pub struct Sphere<T: Material> {
     pub center: Vec3,
@@ -21,7 +23,7 @@ impl<T: Material> Sphere<T> {
     }
 }
 
-impl<T: Material> Hittable for Sphere<T> {
+impl<T: Material> Geometry for Sphere<T> {
     fn hit(&self, ray: &Ray, interval: &Interval) -> Option<HitRecord> {
         let oc = self.center - ray.origin;
         let a = ray.direction.dot(&ray.direction);

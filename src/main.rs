@@ -6,9 +6,8 @@ mod material;
 mod math;
 
 use camera::camera::Camera;
-use geometry::{hittable, sphere::Sphere};
+use geometry::{world::World, sphere::Sphere};
 use glm::Vec3;
-use hittable::HittableList;
 use material::{lambertian::Lambertian, metal::Metal};
 
 const ASPECT_RATIO: f32 = 16.0 / 9.0;
@@ -23,7 +22,7 @@ fn main() {
     let material_left = Metal::new(Vec3::new(0.8, 0.8, 0.8));
     let material_right = Metal::new(Vec3::new(0.8, 0.6, 0.2));
 
-    let world = HittableList::new(vec![
+    let world = World::new(vec![
         Box::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0, ground)),
         Box::new(Sphere::new(Vec3::new(0.0, 0.0, -1.2), 0.5, material_center)),
         Box::new(Sphere::new(Vec3::new(-1.0, 0.0, -1.0), 0.5, material_left)),

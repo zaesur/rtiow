@@ -1,5 +1,5 @@
 use crate::camera::ray::Ray;
-use crate::geometry::hittable::Hittable;
+use crate::geometry::geometry::Geometry;
 use crate::math::interval::Interval;
 use glm::Vec3;
 use indicatif::ProgressIterator;
@@ -52,7 +52,7 @@ impl Camera {
         }
     }
 
-    pub fn render<T: Hittable>(&self, world: &T) {
+    pub fn render<T: Geometry>(&self, world: &T) {
         // Print metadata
         println!("P3\n{} {}\n255", self.image_width, self.image_height);
 
@@ -85,7 +85,7 @@ impl Camera {
         Vec3::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5, 0.0)
     }
 
-    fn ray_color<T: Hittable>(ray: &Ray, depth: u32, world: &T) -> Vec3 {
+    fn ray_color<T: Geometry>(ray: &Ray, depth: u32, world: &T) -> Vec3 {
         if depth <= 0 {
             Vec3::new(0.0, 0.0, 0.0)
         } else if let Some(hit_record) = world.hit(&ray, &Interval::new(0.001, f32::INFINITY)) {
