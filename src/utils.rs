@@ -1,9 +1,7 @@
-use std::iter;
-
+use crate::interval::Interval;
 use glm::Vec3;
 use rand::Rng;
-
-use crate::interval::Interval;
+use std::iter;
 
 pub fn random_vector(interval: Option<Interval>) -> Vec3 {
     let mut rng = rand::thread_rng();
@@ -19,7 +17,7 @@ pub fn random_vector(interval: Option<Interval>) -> Vec3 {
 
 pub fn random_vector_in_unit_sphere() -> Option<Vec3> {
     iter::repeat_with(|| random_vector(Some(Interval::new(-1.0, 1.0))))
-        .filter(|vector| glm::length(vector) < 1.0)
+        .filter(|vector| glm::length2(vector) < 1.0)
         .next()
 }
 
@@ -38,4 +36,8 @@ pub fn random_vector_on_hemisphere(normal: &Vec3) -> Vec3 {
     } else {
         -vector
     }
+}
+
+pub fn reflect(vector: &Vec3, normal: &Vec3) -> Vec3 {
+    vector - 2.0 * vector.dot(normal) * normal
 }

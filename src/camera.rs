@@ -1,11 +1,9 @@
-use glm::Vec3;
-use indicatif::ProgressIterator;
-use rand::Rng;
-
 use crate::hittable::Hittable;
 use crate::interval::Interval;
 use crate::ray::Ray;
-use crate::utils::random_unit_vector;
+use glm::Vec3;
+use indicatif::ProgressIterator;
+use rand::Rng;
 
 pub struct Camera {
     image_width: u32,
@@ -61,9 +59,9 @@ impl Camera {
         // Print data
         for j in (0..self.image_height).progress() {
             for i in 0..self.image_width {
-                let pixel_color = (0..self.samples_per_pixel)
-                    .fold(Vec3::new(0.0, 0.0, 0.0), |color, _| {
-                        color + self.ray_color(&self.get_ray(i, j), self.max_depth, world)
+                let pixel_color =
+                    (0..self.samples_per_pixel).fold(Vec3::new(0.0, 0.0, 0.0), |color, _| {
+                        color + Camera::ray_color(&self.get_ray(i, j), self.max_depth, world)
                     });
 
                 Camera::write_color(pixel_color / self.samples_per_pixel as f32);
@@ -87,12 +85,17 @@ impl Camera {
         Vec3::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5, 0.0)
     }
 
-    fn ray_color<T: Hittable>(&self, ray: &Ray, depth: u32, world: &T) -> Vec3 {
+    fn ray_color<T: Hittable>(ray: &Ray, depth: u32, world: &T) -> Vec3 {
         if depth <= 0 {
             Vec3::new(0.0, 0.0, 0.0)
-        } else if let Some(hr) = world.hit(&ray, &Interval::new(0.001, f32::INFINITY)) {
-            let direction = hr.normal + random_unit_vector();
-            0.5 * self.ray_color(&Ray::new(hr.p, direction), depth - 1, world)
+        } else if let Some(hit_record) = world.hit(&ray, &Interval::new(0.001, f32::INFINITY)) {
+            if let Some((scattered_ray, attenuation)) =
+                hit_record.material.scatter(ray, &hit_record)
+            {
+                attenuation.component_mul(&Camera::ray_color(&scattered_ray, depth - 1, world))
+            } else {
+                Vec3::new(0.0, 0.0, 0.0)
+            }
         } else {
             let unit_direction = ray.direction;
             let a = 0.5 * (unit_direction.y + 1.0);

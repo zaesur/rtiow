@@ -3,7 +3,6 @@ pub struct Interval {
     pub max: f32,
 }
 
-#[allow(dead_code)]
 impl Interval {
     pub fn new(min: f32, max: f32) -> Self {
         Interval { min, max }
