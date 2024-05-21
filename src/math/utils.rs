@@ -38,6 +38,3 @@ pub fn random_vector_on_hemisphere(normal: &Vec3) -> Vec3 {
     }
 }
 
-pub fn reflect(vector: &Vec3, normal: &Vec3) -> Vec3 {
-    vector - 2.0 * vector.dot(normal) * normal
-}

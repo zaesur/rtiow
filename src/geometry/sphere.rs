@@ -1,8 +1,8 @@
 use glm::Vec3;
 
-use crate::math::interval::Interval;
-use crate::material::material::Material;
 use crate::camera::ray::Ray;
+use crate::material::material::Material;
+use crate::math::interval::Interval;
 
 use super::geometry::Geometry;
 use super::hit_record::HitRecord;
@@ -26,10 +26,10 @@ impl<T: Material> Sphere<T> {
 impl<T: Material> Geometry for Sphere<T> {
     fn hit(&self, ray: &Ray, interval: &Interval) -> Option<HitRecord> {
         let oc = self.center - ray.origin;
-        let a = ray.direction.dot(&ray.direction);
-        let h = ray.direction.dot(&oc);
-        let c = oc.dot(&oc) - f32::powi(self.radius, 2);
-        let discriminant = f32::powi(h, 2) - a * c;
+        let a = glm::dot(&ray.direction, &ray.direction);
+        let h = glm::dot(&ray.direction, &oc);
+        let c = glm::dot(&oc, &oc) - self.radius.powi(2);
+        let discriminant = h.powi(2) - a * c;
 
         if discriminant < 0.0 {
             return None;
@@ -45,9 +45,15 @@ impl<T: Material> Geometry for Sphere<T> {
         let t = root;
         let p = ray.at(t);
         let normal = (p - self.center) * (1.0 / self.radius);
-        let front_face = ray.direction.dot(&normal) < 0.0;
+        let front_face = glm::dot(&ray.direction, &normal) < 0.0;
         let corrected_normal = if front_face { normal } else { -normal };
 
-        Some(HitRecord::new(t, p, corrected_normal, &self.material))
+        Some(HitRecord::new(
+            t,
+            p,
+            corrected_normal,
+            front_face,
+            &self.material,
+        ))
     }
 }

@@ -6,21 +6,21 @@ mod material;
 mod math;
 
 use camera::camera::Camera;
-use geometry::{world::World, sphere::Sphere};
+use geometry::{sphere::Sphere, world::World};
 use glm::Vec3;
 use material::{lambertian::Lambertian, metal::Metal};
 
 const ASPECT_RATIO: f32 = 16.0 / 9.0;
 const IMAGE_WIDTH: u32 = 400;
 const FOCAL_LENGTH: f32 = 1.0;
-const SAMPLES_PER_PIXEL: u32 = 300;
-const MAX_DEPTH: u32 = 30;
+const SAMPLES_PER_PIXEL: u32 = 100;
+const MAX_DEPTH: u32 = 10;
 
 fn main() {
     let ground = Lambertian::new(Vec3::new(0.8, 0.8, 0.0));
     let material_center = Lambertian::new(Vec3::new(0.1, 0.2, 0.5));
-    let material_left = Metal::new(Vec3::new(0.8, 0.8, 0.8));
-    let material_right = Metal::new(Vec3::new(0.8, 0.6, 0.2));
+    let material_left = Metal::new(Vec3::new(0.8, 0.8, 0.8), 0.3);
+    let material_right = Metal::new(Vec3::new(0.8, 0.6, 0.2), 1.0);
 
     let world = World::new(vec![
         Box::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0, ground)),
