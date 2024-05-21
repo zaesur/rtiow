@@ -1,0 +1,8 @@
+[package]
+name = "raytracer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+indicatif = "0.17.8"
+nalgebra-glm = "0.18.0"
