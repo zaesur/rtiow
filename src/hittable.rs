@@ -26,7 +26,6 @@ pub struct HittableList<T: Hittable> {
     items: Vec<T>,
 }
 
-#[allow(dead_code)]
 impl<T: Hittable> HittableList<T> {
     pub fn new(items: Vec<T>) -> Self {
         HittableList { items }

@@ -7,7 +7,6 @@ pub struct Sphere {
     pub radius: f32,
 }
 
-#[allow(dead_code)]
 impl Sphere {
     pub fn new(center: Vec3, radius: f32) -> Self {
         Sphere { center, radius }
