@@ -1,5 +1,6 @@
-use glm::Vec3;
+use crate::interval::Interval;
 use crate::ray::Ray;
+use glm::Vec3;
 
 pub struct HitRecord {
     pub p: Vec3,
@@ -19,7 +20,7 @@ impl HitRecord {
 }
 
 pub trait Hittable {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord>;
+    fn hit(&self, ray: &Ray, interval: &Interval) -> Option<HitRecord>;
 }
 
 pub struct HittableList<T: Hittable> {
@@ -33,12 +34,14 @@ impl<T: Hittable> HittableList<T> {
 }
 
 impl<T: Hittable> Hittable for HittableList<T> {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+    fn hit(&self, ray: &Ray, interval: &Interval) -> Option<HitRecord> {
         self.items.iter().fold(None, |closest_hit, hittable| {
             if let Some(ref closest) = closest_hit {
-                hittable.hit(ray, t_min, closest.t).or(closest_hit)
+                hittable
+                    .hit(ray, &Interval::new(interval.min, closest.t))
+                    .or(closest_hit)
             } else {
-                hittable.hit(ray, t_min, t_max)
+                hittable.hit(ray, interval)
             }
         })
     }

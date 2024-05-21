@@ -1,12 +1,14 @@
 extern crate nalgebra_glm as glm;
 
 mod hittable;
+mod interval;
 mod ray;
 mod sphere;
 
 use glm::Vec3;
 use hittable::{Hittable, HittableList};
 use indicatif::ProgressBar;
+use interval::Interval;
 use ray::Ray;
 use sphere::Sphere;
 
@@ -28,16 +30,13 @@ fn lerp(a: f32, start: Vec3, end: Vec3) -> Vec3 {
 }
 
 fn ray_color<T: Hittable>(ray: &Ray, world: T) -> Vec3 {
-    let result = world.hit(&ray, 0.0, 100.0);
+    if let Some(hr) = world.hit(&ray, &Interval::new(0.0, f32::INFINITY)) {
+        0.5 * (hr.normal + Vec3::new(1.0, 1.0, 1.0))
+    } else {
+        let unit_direction = ray.direction;
+        let a = 0.5 * (unit_direction.y + 1.0);
 
-    match result {
-        None => {
-            let unit_direction = ray.direction;
-            let a = 0.5 * (unit_direction.y + 1.0);
-
-            return lerp(a, Vec3::new(1.0, 1.0, 1.0), Vec3::new(0.5, 0.7, 1.0));
-        }
-        Some(hr) => return 0.5 * (hr.normal + Vec3::new(1.0, 1.0, 1.0)),
+        lerp(a, Vec3::new(1.0, 1.0, 1.0), Vec3::new(0.5, 0.7, 1.0))
     }
 }
 
@@ -72,7 +71,7 @@ fn main() {
 
             let world = HittableList::new(Vec::from([
                 Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5),
-                Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0)
+                Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0),
             ]));
             let pixel_color = ray_color(&r, world);
 
