@@ -1,18 +1,21 @@
 extern crate nalgebra_glm as glm;
 
 mod camera;
-mod hittable;
-mod interval;
+mod geometry;
 mod material;
-mod ray;
-mod sphere;
-mod utils;
+mod math;
 
-use camera::Camera;
+use camera::camera::Camera;
+use geometry::{hittable, sphere::Sphere};
 use glm::Vec3;
 use hittable::HittableList;
 use material::{lambertian::Lambertian, metal::Metal};
-use sphere::Sphere;
+
+const ASPECT_RATIO: f32 = 16.0 / 9.0;
+const IMAGE_WIDTH: u32 = 400;
+const FOCAL_LENGTH: f32 = 1.0;
+const SAMPLES_PER_PIXEL: u32 = 300;
+const MAX_DEPTH: u32 = 30;
 
 fn main() {
     let ground = Lambertian::new(Vec3::new(0.8, 0.8, 0.0));
@@ -26,12 +29,6 @@ fn main() {
         Box::new(Sphere::new(Vec3::new(-1.0, 0.0, -1.0), 0.5, material_left)),
         Box::new(Sphere::new(Vec3::new(1.0, 0.0, -1.0), 0.5, material_right)),
     ]);
-
-    const ASPECT_RATIO: f32 = 16.0 / 9.0;
-    const IMAGE_WIDTH: u32 = 400;
-    const FOCAL_LENGTH: f32 = 1.0;
-    const SAMPLES_PER_PIXEL: u32 = 10;
-    const MAX_DEPTH: u32 = 10;
 
     let camera = Camera::new(
         ASPECT_RATIO,

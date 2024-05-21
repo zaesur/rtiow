@@ -1,6 +1,6 @@
-use crate::interval::Interval;
+use crate::camera::ray::Ray;
 use crate::material::material::Material;
-use crate::ray::Ray;
+use crate::math::interval::Interval;
 use glm::Vec3;
 
 pub struct HitRecord<'a> {
@@ -12,7 +12,12 @@ pub struct HitRecord<'a> {
 
 impl<'a> HitRecord<'a> {
     pub fn new(t: f32, p: Vec3, normal: Vec3, material: &'a dyn Material) -> Self {
-        HitRecord { t, p, normal, material }
+        HitRecord {
+            t,
+            p,
+            normal,
+            material,
+        }
     }
 }
 

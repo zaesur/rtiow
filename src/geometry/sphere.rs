@@ -1,9 +1,9 @@
 use glm::Vec3;
 
-use crate::hittable::{HitRecord, Hittable};
-use crate::interval::Interval;
+use crate::geometry::hittable::{HitRecord, Hittable};
+use crate::math::interval::Interval;
 use crate::material::material::Material;
-use crate::ray::Ray;
+use crate::camera::ray::Ray;
 
 pub struct Sphere<T: Material> {
     pub center: Vec3,

@@ -1,6 +1,6 @@
-use crate::hittable::HitRecord;
-use crate::ray::Ray;
-use crate::utils::reflect;
+use crate::geometry::hittable::HitRecord;
+use crate::camera::ray::Ray;
+use crate::math::utils::reflect;
 
 use super::material::Material;
 use glm::Vec3;

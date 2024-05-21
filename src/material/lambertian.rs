@@ -1,9 +1,9 @@
 use glm::Vec3;
 
 use super::material::Material;
-use crate::hittable::HitRecord;
-use crate::ray::Ray;
-use crate::utils::random_unit_vector;
+use crate::geometry::hittable::HitRecord;
+use crate::camera::ray::Ray;
+use crate::math::utils::random_unit_vector;
 
 pub struct Lambertian {
     albedo: Vec3,

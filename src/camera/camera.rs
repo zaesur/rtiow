@@ -1,6 +1,6 @@
-use crate::hittable::Hittable;
-use crate::interval::Interval;
-use crate::ray::Ray;
+use crate::camera::ray::Ray;
+use crate::geometry::hittable::Hittable;
+use crate::math::interval::Interval;
 use glm::Vec3;
 use indicatif::ProgressIterator;
 use rand::Rng;

@@ -1,4 +1,4 @@
-use crate::interval::Interval;
+use crate::math::interval::Interval;
 use glm::Vec3;
 use rand::Rng;
 use std::iter;
