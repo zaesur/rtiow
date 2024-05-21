@@ -1,16 +1,16 @@
 use crate::math::interval::Interval;
+
 use glm::Vec3;
-use rand::Rng;
+use rand::random;
 use std::iter;
 
 pub fn random_vector(interval: Option<Interval>) -> Vec3 {
-    let mut rng = rand::thread_rng();
     match interval {
-        None => Vec3::new(rng.gen::<f32>(), rng.gen::<f32>(), rng.gen::<f32>()),
+        None => Vec3::new(random(), random(), random()),
         Some(interval) => Vec3::new(
-            interval.min + (interval.max - interval.min) * rng.gen::<f32>(),
-            interval.min + (interval.max - interval.min) * rng.gen::<f32>(),
-            interval.min + (interval.max - interval.min) * rng.gen::<f32>(),
+            interval.min + (interval.max - interval.min) * random::<f32>(),
+            interval.min + (interval.max - interval.min) * random::<f32>(),
+            interval.min + (interval.max - interval.min) * random::<f32>(),
         ),
     }
 }
@@ -37,4 +37,3 @@ pub fn random_vector_on_hemisphere(normal: &Vec3) -> Vec3 {
         -vector
     }
 }
-

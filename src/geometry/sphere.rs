@@ -26,9 +26,9 @@ impl<T: Material> Sphere<T> {
 impl<T: Material + Sync> Geometry for Sphere<T> {
     fn hit(&self, ray: &Ray, interval: &Interval) -> Option<HitRecord> {
         let oc = self.center - ray.origin;
-        let a = glm::dot(&ray.direction, &ray.direction);
+        let a = glm::length2(&ray.direction);
         let h = glm::dot(&ray.direction, &oc);
-        let c = glm::dot(&oc, &oc) - self.radius.powi(2);
+        let c = glm::length2(&oc) - self.radius.powi(2);
         let discriminant = h.powi(2) - a * c;
 
         if discriminant < 0.0 {
@@ -36,22 +36,25 @@ impl<T: Material + Sync> Geometry for Sphere<T> {
         }
 
         let sqrt = discriminant.sqrt();
-        let root = (h - sqrt) / a;
+        let mut root = (h - sqrt) / a;
 
-        if !(interval.surrounds(root) || interval.surrounds((h + sqrt) / a)) {
-            return None;
+        if !interval.surrounds(root) {
+            root = (h + sqrt) / a;
+            if !interval.surrounds(root) {
+                return None
+            }
         }
 
         let t = root;
         let p = ray.at(t);
-        let normal = (p - self.center) * (1.0 / self.radius);
-        let front_face = glm::dot(&ray.direction, &normal) < 0.0;
-        let corrected_normal = if front_face { normal } else { -normal };
+        let outward_normal = (p - self.center) / self.radius;
+        let front_face = glm::dot(&ray.direction, &outward_normal) < 0.0;
+        let normal = if front_face { outward_normal } else { -outward_normal };
 
         Some(HitRecord::new(
             t,
             p,
-            corrected_normal,
+            normal,
             front_face,
             &self.material,
         ))

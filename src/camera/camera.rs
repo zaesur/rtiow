@@ -4,7 +4,7 @@ use crate::math::interval::Interval;
 
 use glm::Vec3;
 use indicatif::ProgressIterator;
-use rand::Rng;
+use rand::random;
 use rayon::prelude::*;
 
 pub struct Camera {
@@ -82,8 +82,7 @@ impl Camera {
     }
 
     fn sample_square() -> Vec3 {
-        let mut rng = rand::thread_rng();
-        Vec3::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5, 0.0)
+        Vec3::new(random::<f32>() - 0.5, random::<f32>() - 0.5, 0.0)
     }
 
     fn ray_color<T: Geometry>(ray: &Ray, depth: u32, world: &T) -> Vec3 {

@@ -3,6 +3,7 @@ use crate::geometry::hit_record::HitRecord;
 use crate::math::utils::random_unit_vector;
 
 use super::material::Material;
+use super::reflect::Reflect;
 use glm::Vec3;
 
 pub struct Metal {
@@ -14,11 +15,9 @@ impl Metal {
     pub fn new(albedo: Vec3, fuzz: f32) -> Self {
         Metal { albedo, fuzz }
     }
-
-    fn reflect(vector: &Vec3, normal: &Vec3) -> Vec3 {
-        vector - 2.0 * glm::dot(vector, normal) * normal
-    }
 }
+
+impl Reflect for Metal {}
 
 impl Material for Metal {
     fn scatter(&self, ray: &Ray, hit_record: &HitRecord) -> Option<(Ray, Vec3)> {
