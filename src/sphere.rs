@@ -19,8 +19,8 @@ impl Hittable for Sphere {
         let oc = self.center - ray.origin;
         let a = ray.direction.dot(&ray.direction);
         let h = ray.direction.dot(&oc);
-        let c = oc.dot(&oc) - self.radius * self.radius;
-        let discriminant = h * h - a * c;
+        let c = oc.dot(&oc) - f32::powi(self.radius, 2);
+        let discriminant = f32::powi(h, 2) - a * c;
 
         if discriminant < 0.0 {
             return None;
@@ -29,7 +29,7 @@ impl Hittable for Sphere {
         let sqrt = discriminant.sqrt();
         let root = (h - sqrt) / a;
 
-        if !interval.surrounds(root) && !interval.surrounds((h + sqrt) / a) {
+        if !(interval.surrounds(root) || interval.surrounds((h + sqrt) / a)) {
             return None;
         }
 

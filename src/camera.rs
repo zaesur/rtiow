@@ -5,6 +5,7 @@ use rand::Rng;
 use crate::hittable::Hittable;
 use crate::interval::Interval;
 use crate::ray::Ray;
+use crate::utils::random_vector_on_hemisphere;
 
 pub struct Camera {
     image_width: u32,
@@ -13,11 +14,18 @@ pub struct Camera {
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
     pixel00: Vec3,
-    sample_size: u32,
+    samples_per_pixel: u32,
+    max_depth: u32,
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f32, image_width: u32, focal_length: f32, sample_size: u32) -> Self {
+    pub fn new(
+        aspect_ratio: f32,
+        image_width: u32,
+        focal_length: f32,
+        samples_per_pixel: u32,
+        max_depth: u32,
+    ) -> Self {
         let image_height = (image_width as f32 / aspect_ratio) as u32;
 
         let viewport_height = 2.0;
@@ -41,7 +49,8 @@ impl Camera {
             pixel_delta_u,
             pixel_delta_v,
             pixel00,
-            sample_size,
+            samples_per_pixel,
+            max_depth,
         }
     }
 
@@ -52,12 +61,12 @@ impl Camera {
         // Print data
         for j in (0..self.image_height).progress() {
             for i in 0..self.image_width {
-                let pixel_color = (0..self.sample_size)
+                let pixel_color = (0..self.samples_per_pixel)
                     .fold(Vec3::new(0.0, 0.0, 0.0), |color, _| {
-                        color + self.ray_color(&self.get_ray(i, j), world)
+                        color + self.ray_color(&self.get_ray(i, j), self.max_depth, world)
                     });
 
-                Camera::write_color(pixel_color / self.sample_size as f32);
+                Camera::write_color(pixel_color / self.samples_per_pixel as f32);
             }
         }
     }
@@ -78,9 +87,12 @@ impl Camera {
         Vec3::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5, 0.0)
     }
 
-    fn ray_color<T: Hittable>(&self, ray: &Ray, world: &T) -> Vec3 {
-        if let Some(hr) = world.hit(&ray, &Interval::new(0.0, f32::INFINITY)) {
-            0.5 * (hr.normal + Vec3::new(1.0, 1.0, 1.0))
+    fn ray_color<T: Hittable>(&self, ray: &Ray, depth: u32, world: &T) -> Vec3 {
+        if depth <= 0 {
+            Vec3::new(0.0, 0.0, 0.0)
+        } else if let Some(hr) = world.hit(&ray, &Interval::new(0.001, f32::INFINITY)) {
+            let direction = random_vector_on_hemisphere(&hr.normal);
+            0.5 * self.ray_color(&Ray::new(hr.p, direction), depth - 1, world)
         } else {
             let unit_direction = ray.direction;
             let a = 0.5 * (unit_direction.y + 1.0);

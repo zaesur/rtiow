@@ -5,6 +5,7 @@ mod hittable;
 mod interval;
 mod ray;
 mod sphere;
+mod utils;
 
 use camera::Camera;
 use glm::Vec3;
@@ -20,9 +21,16 @@ fn main() {
     const ASPECT_RATIO: f32 = 16.0 / 9.0;
     const IMAGE_WIDTH: u32 = 400;
     const FOCAL_LENGTH: f32 = 1.0;
-    const SAMPLE_SIZE: u32 = 10;
+    const SAMPLES_PER_PIXEL: u32 = 100;
+    const MAX_DEPTH: u32 = 50;
 
-    let camera = Camera::new(ASPECT_RATIO, IMAGE_WIDTH, FOCAL_LENGTH, SAMPLE_SIZE);
+    let camera = Camera::new(
+        ASPECT_RATIO,
+        IMAGE_WIDTH,
+        FOCAL_LENGTH,
+        SAMPLES_PER_PIXEL,
+        MAX_DEPTH,
+    );
 
     camera.render(&world)
 }
