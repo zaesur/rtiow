@@ -1,17 +1,10 @@
 use glm::Vec3;
+use indicatif::ProgressIterator;
+use rand::Rng;
 
 use crate::hittable::Hittable;
 use crate::interval::Interval;
 use crate::ray::Ray;
-use indicatif::ProgressIterator;
-
-fn write_color(color: Vec3) {
-    let ir = (255.999 * color.x) as i32;
-    let ig = (255.999 * color.y) as i32;
-    let ib = (255.999 * color.z) as i32;
-
-    println!("{ir} {ig} {ib}");
-}
 
 pub struct Camera {
     image_width: u32,
@@ -20,10 +13,11 @@ pub struct Camera {
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
     pixel00: Vec3,
+    sample_size: u32,
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f32, image_width: u32, focal_length: f32) -> Self {
+    pub fn new(aspect_ratio: f32, image_width: u32, focal_length: f32, sample_size: u32) -> Self {
         let image_height = (image_width as f32 / aspect_ratio) as u32;
 
         let viewport_height = 2.0;
@@ -47,6 +41,7 @@ impl Camera {
             pixel_delta_u,
             pixel_delta_v,
             pixel00,
+            sample_size,
         }
     }
 
@@ -57,17 +52,30 @@ impl Camera {
         // Print data
         for j in (0..self.image_height).progress() {
             for i in 0..self.image_width {
-                let pixel_center = self.pixel00
-                    + (i as f32 * self.pixel_delta_u)
-                    + (j as f32 * self.pixel_delta_v);
-                let ray_direction = pixel_center - self.center;
-                let r = Ray::new(self.center, ray_direction);
+                let pixel_color = (0..self.sample_size)
+                    .fold(Vec3::new(0.0, 0.0, 0.0), |color, _| {
+                        color + self.ray_color(&self.get_ray(i, j), world)
+                    });
 
-                let pixel_color = self.ray_color(&r, world);
-
-                write_color(pixel_color);
+                Camera::write_color(pixel_color / self.sample_size as f32);
             }
         }
+    }
+
+    fn get_ray(&self, i: u32, j: u32) -> Ray {
+        let offset = Camera::sample_square();
+        let pixel_sample = self.pixel00
+            + ((i as f32 + offset.x) * self.pixel_delta_u)
+            + ((j as f32 + offset.y) as f32 * self.pixel_delta_v);
+        let ray_origin = self.center;
+        let ray_direction = pixel_sample - ray_origin;
+
+        Ray::new(ray_origin, ray_direction)
+    }
+
+    fn sample_square() -> Vec3 {
+        let mut rng = rand::thread_rng();
+        Vec3::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5, 0.0)
     }
 
     fn ray_color<T: Hittable>(&self, ray: &Ray, world: &T) -> Vec3 {
@@ -79,5 +87,14 @@ impl Camera {
 
             (1.0 - a) * Vec3::new(1.0, 1.0, 1.0) + a * Vec3::new(0.5, 0.7, 1.0)
         }
+    }
+
+    fn write_color(color: Vec3) {
+        let intensity = Interval::new(0.0, 0.999);
+        let ir = (256.0 * intensity.clamp(color.x)) as i32;
+        let ig = (256.0 * intensity.clamp(color.y)) as i32;
+        let ib = (256.0 * intensity.clamp(color.z)) as i32;
+
+        println!("{ir} {ig} {ib}");
     }
 }
