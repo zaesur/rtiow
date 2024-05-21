@@ -23,7 +23,7 @@ impl<T: Material> Sphere<T> {
     }
 }
 
-impl<T: Material> Geometry for Sphere<T> {
+impl<T: Material + Sync> Geometry for Sphere<T> {
     fn hit(&self, ray: &Ray, interval: &Interval) -> Option<HitRecord> {
         let oc = self.center - ray.origin;
         let a = glm::dot(&ray.direction, &ray.direction);

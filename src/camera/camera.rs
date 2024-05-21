@@ -1,9 +1,11 @@
 use crate::camera::ray::Ray;
 use crate::geometry::geometry::Geometry;
 use crate::math::interval::Interval;
+
 use glm::Vec3;
 use indicatif::ProgressIterator;
 use rand::Rng;
+use rayon::prelude::*;
 
 pub struct Camera {
     image_width: u32,
@@ -52,18 +54,17 @@ impl Camera {
         }
     }
 
-    pub fn render<T: Geometry>(&self, world: &T) {
+    pub fn render<T: Geometry + Sync>(&self, world: &T) {
         // Print metadata
         println!("P3\n{} {}\n255", self.image_width, self.image_height);
 
         // Print data
         for j in (0..self.image_height).progress() {
             for i in 0..self.image_width {
-                let pixel_color =
-                    (0..self.samples_per_pixel).fold(Vec3::new(0.0, 0.0, 0.0), |color, _| {
-                        color + Camera::ray_color(&self.get_ray(i, j), self.max_depth, world)
-                    });
-
+                let pixel_color: Vec3 = (0..self.samples_per_pixel)
+                    .into_par_iter()
+                    .map(|_| Camera::ray_color(&self.get_ray(i, j), self.max_depth, world)) 
+                    .sum();
                 Camera::write_color(pixel_color / self.samples_per_pixel as f32);
             }
         }
