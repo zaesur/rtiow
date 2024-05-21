@@ -1,10 +1,14 @@
 extern crate nalgebra_glm as glm;
 
 mod ray;
+mod sphere;
+mod hittable;
 
 use glm::Vec3;
-use indicatif::ProgressBar;
 use ray::Ray;
+use sphere::Sphere;
+use hittable::Hittable;
+use indicatif::ProgressBar;
 
 fn write_color(color: Vec3) {
     let ir = (255.999 * color.x) as i32;
@@ -18,31 +22,21 @@ fn lerp(a: f32, start: Vec3, end: Vec3) -> Vec3 {
     return (1.0 - a) * start + a * end;
 }
 
-fn hit_sphere(center: Vec3, radius: f32, ray: &Ray) -> f32 {
-    let oc = center - &ray.origin;
-    let a = &ray.direction.dot(&ray.direction);
-    let h = &ray.direction.dot(&oc);
-    let c = oc.dot(&oc) - radius * radius;
-    let discriminant = h * h - a * c;
+fn ray_color<T: Hittable>(ray: &Ray, world: T) -> Vec3 {
+    let result = world.hit(&ray, 0.0, 100.0);
 
-    if discriminant < 0.0 {
-        return -1.0;
-    } else {
-        return (h - discriminant.sqrt()) / a;
-    }
-}
+    match result {
+        None => {
+            let unit_direction = ray.direction;
+            let a = 0.5 * (unit_direction.y + 1.0);
 
-fn ray_color(ray: &Ray) -> Vec3 {
-    let t = hit_sphere(Vec3::new(0.0, 0.0, -1.0), 0.5, &ray);
-    if t > 0.0 {
-        let n = (&ray.at(t) - Vec3::new(0.0, 0.0, -1.0)).normalize();
-        return 0.5 * Vec3::new(n.x + 1.0, n.y + 1.0, n.z + 1.0)
+            return lerp(a, Vec3::new(1.0, 1.0, 1.0), Vec3::new(0.5, 0.7, 1.0));
+        },
+        Some(hr) => {
+            return 0.5 * (hr.normal + Vec3::new(1.0, 1.0, 1.0))
+        }
     }
 
-    let unit_direction = ray.direction;
-    let a = 0.5 * (unit_direction.y + 1.0);
-
-    return lerp(a, Vec3::new(1.0, 1.0, 1.0), Vec3::new(0.5, 0.7, 1.0));
 }
 
 fn main() {
@@ -78,7 +72,7 @@ fn main() {
             let ray_direction = pixel_center - camera_center;
             let r = Ray::new(camera_center, ray_direction);
 
-            let pixel_color = ray_color(&r);
+            let pixel_color = ray_color(&r, Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5));
             write_color(pixel_color);
         }
         pb.inc(1);
