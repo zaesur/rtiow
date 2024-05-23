@@ -8,52 +8,17 @@ use rand::random;
 use rayon::prelude::*;
 
 pub struct Camera {
-    image_width: u32,
-    image_height: u32,
-    center: Vec3,
-    pixel_delta_u: Vec3,
-    pixel_delta_v: Vec3,
-    pixel00: Vec3,
-    samples_per_pixel: u32,
-    max_depth: u32,
+    pub image_width: u32,
+    pub image_height: u32,
+    pub center: Vec3,
+    pub pixel_delta_u: Vec3,
+    pub pixel_delta_v: Vec3,
+    pub pixel00_loc: Vec3,
+    pub samples_per_pixel: u32,
+    pub max_depth: u32,
 }
 
 impl Camera {
-    pub fn new(
-        aspect_ratio: f32,
-        image_width: u32,
-        focal_length: f32,
-        samples_per_pixel: u32,
-        max_depth: u32,
-    ) -> Self {
-        let image_height = (image_width as f32 / aspect_ratio) as u32;
-
-        let viewport_height = 2.0;
-        let viewport_width: f32 = viewport_height * image_width as f32 / image_height as f32;
-        let center = Vec3::new(0.0, 0.0, 0.0);
-
-        let viewport_u = Vec3::new(viewport_width, 0.0, 0.0);
-        let viewport_v = Vec3::new(0.0, -viewport_height, 0.0);
-
-        let pixel_delta_u = viewport_u / image_width as f32;
-        let pixel_delta_v = viewport_v / image_height as f32;
-
-        let viewport_upper_left =
-            center - Vec3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
-        let pixel00 = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
-
-        Camera {
-            image_width,
-            image_height,
-            center,
-            pixel_delta_u,
-            pixel_delta_v,
-            pixel00,
-            samples_per_pixel,
-            max_depth,
-        }
-    }
-
     pub fn render<T: Geometry + Sync>(&self, world: &T) {
         // Print metadata
         println!("P3\n{} {}\n255", self.image_width, self.image_height);
@@ -72,7 +37,7 @@ impl Camera {
 
     fn get_ray(&self, i: u32, j: u32) -> Ray {
         let offset = Camera::sample_square();
-        let pixel_sample = self.pixel00
+        let pixel_sample = self.pixel00_loc
             + ((i as f32 + offset.x) * self.pixel_delta_u)
             + ((j as f32 + offset.y) as f32 * self.pixel_delta_v);
         let ray_origin = self.center;

@@ -25,9 +25,10 @@ fn main() {
 
     let camera = CameraBuilder::new()
         .image_width(200)
-        .max_bounces(10)
-        .sample_size(10)
-        .build();
+        .max_depth(10)
+        .samples_per_pixel(10)
+        .vfov(20.0)
+        .build(Vec3::new(-2.0, 2.0, 1.0), Vec3::new(0.0, 0.0, -1.0));
 
     camera.render(&world)
 }
