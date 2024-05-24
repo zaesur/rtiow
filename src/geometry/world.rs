@@ -12,6 +12,10 @@ impl World {
     pub fn new(items: Vec<Box<dyn Geometry>>) -> Self {
         World { items }
     }
+
+    pub fn add(&mut self, item: Box<dyn Geometry>) -> () {
+        self.items.push(item);
+    }
 }
 
 impl Geometry for World {
