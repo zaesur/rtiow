@@ -15,16 +15,29 @@ pub fn random_vector(interval: Option<Interval>) -> Vec3 {
     }
 }
 
-pub fn random_vector_in_unit_sphere() -> Option<Vec3> {
+pub fn random_vector_in_unit_disk() -> Vec3 {
+    let interval = Interval::new(-1.0, 1.0);
+    iter::repeat_with(|| {
+        Vec3::new(
+            interval.min + (interval.max - interval.min) * random::<f32>(),
+            interval.min + (interval.max - interval.min) * random::<f32>(),
+            interval.min + (interval.max - interval.min) * random::<f32>(),
+        )
+    })
+    .filter(|vector| glm::length2(vector) < 1.0)
+    .next()
+    .expect("No vector found!")
+}
+
+pub fn random_vector_in_unit_sphere() -> Vec3 {
     iter::repeat_with(|| random_vector(Some(Interval::new(-1.0, 1.0))))
         .filter(|vector| glm::length2(vector) < 1.0)
         .next()
+        .expect("No unit vector found!")
 }
 
 pub fn random_unit_vector() -> Vec3 {
-    random_vector_in_unit_sphere()
-        .and_then(|vector| Some(vector.normalize()))
-        .expect("No unit vector found!")
+    random_vector_in_unit_sphere().normalize()
 }
 
 #[allow(dead_code)]

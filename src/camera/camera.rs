@@ -1,6 +1,7 @@
 use crate::camera::ray::Ray;
 use crate::geometry::geometry::Geometry;
 use crate::math::interval::Interval;
+use crate::math::utils::random_vector_in_unit_disk;
 
 use glm::Vec3;
 use indicatif::ProgressIterator;
@@ -16,6 +17,9 @@ pub struct Camera {
     pub pixel00_loc: Vec3,
     pub samples_per_pixel: u32,
     pub max_depth: u32,
+    pub defocus_angle: f32,
+    pub defocus_disk_u: Vec3,
+    pub defocus_disk_v: Vec3,
 }
 
 impl Camera {
@@ -28,7 +32,7 @@ impl Camera {
             for i in 0..self.image_width {
                 let pixel_color: Vec3 = (0..self.samples_per_pixel)
                     .into_par_iter()
-                    .map(|_| Camera::ray_color(&self.get_ray(i, j), self.max_depth, world)) 
+                    .map(|_| Camera::ray_color(&self.get_ray(i, j), self.max_depth, world))
                     .sum();
                 Camera::write_color(pixel_color / self.samples_per_pixel as f32);
             }
@@ -40,7 +44,11 @@ impl Camera {
         let pixel_sample = self.pixel00_loc
             + ((i as f32 + offset.x) * self.pixel_delta_u)
             + ((j as f32 + offset.y) as f32 * self.pixel_delta_v);
-        let ray_origin = self.center;
+        let ray_origin = if self.defocus_angle <= 0.0 {
+            self.center
+        } else {
+            self.defocus_disk_sample() 
+        };
         let ray_direction = pixel_sample - ray_origin;
 
         Ray::new(ray_origin, ray_direction)
@@ -48,6 +56,11 @@ impl Camera {
 
     fn sample_square() -> Vec3 {
         Vec3::new(random::<f32>() - 0.5, random::<f32>() - 0.5, 0.0)
+    }
+    
+    fn defocus_disk_sample(&self) -> Vec3 {
+        let p = random_vector_in_unit_disk();
+        self.center + p.x * self.defocus_disk_u + p.y * self.defocus_disk_v
     }
 
     fn ray_color<T: Geometry>(ray: &Ray, depth: u32, world: &T) -> Vec3 {
