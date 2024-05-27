@@ -5,6 +5,7 @@ use crate::ray::ray::Ray;
 use super::material::Material;
 use super::reflect::Reflect;
 use glm::Vec3;
+use rand::rngs::ThreadRng;
 
 pub struct Metal {
     albedo: Vec3,
@@ -21,8 +22,9 @@ impl Reflect for Metal {}
 
 impl Material for Metal {
     fn scatter(&self, ray: &Ray, hit_record: &HitRecord) -> Option<(Ray, Vec3)> {
+        let mut rng = ThreadRng::default();
         let reflection = Metal::reflect(&ray.direction, &hit_record.normal);
-        let reflected = reflection.normalize() + (self.fuzz * random_unit_vector());
+        let reflected = reflection.normalize() + (self.fuzz * random_unit_vector(&mut rng));
         let scattered = Ray::new(hit_record.p, reflected);
 
         if glm::dot(&scattered.direction, &hit_record.normal) > 0.0 {

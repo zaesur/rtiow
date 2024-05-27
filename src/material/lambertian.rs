@@ -1,4 +1,5 @@
 use glm::Vec3;
+use rand::rngs::ThreadRng;
 
 use super::material::Material;
 use crate::geometry::hit_record::HitRecord;
@@ -19,7 +20,8 @@ impl Lambertian {
 
 impl Material for Lambertian {
     fn scatter(&self, _ray: &Ray, hit_record: &HitRecord) -> Option<(Ray, Vec3)> {
-        let scatter_direction = hit_record.normal + random_unit_vector();
+        let mut rng = ThreadRng::default();
+        let scatter_direction = hit_record.normal + random_unit_vector(&mut rng);
         let result = (
             Ray::new(
                 hit_record.p,

@@ -6,7 +6,7 @@ use crate::ray::ray::Ray;
 use glm::Vec3;
 use indicatif::ProgressIterator;
 use itertools::Itertools;
-use rand::{Rng, SeedableRng};
+use rand::{rngs::ThreadRng, Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
@@ -68,7 +68,8 @@ impl Camera {
     }
 
     fn defocus_disk_sample(&self) -> Vec3 {
-        let p = random_vector_in_unit_disk();
+        let mut rng = ThreadRng::default();
+        let p = random_vector_in_unit_disk(&mut rng);
         self.center + p.x * self.defocus_disk_u + p.y * self.defocus_disk_v
     }
 

@@ -11,7 +11,7 @@ use geometry::{sphere::Sphere, world::World};
 use glm::Vec3;
 use material::{dielectric::Dielectric, lambertian::Lambertian, metal::Metal};
 use math::{interval::Interval, utils::random_vector};
-use rand::random;
+use rand::{rngs::ThreadRng, Rng};
 
 fn main() {
     let world = random_scene();
@@ -36,23 +36,24 @@ fn random_scene() -> World {
         ground_material,
     ))]);
 
-    for a in -11..11 {
-        for b in -11..11 {
-            let choose_mat: f32 = random();
+    for a in -11..=11 {
+        for b in -11..=11 {
+            let mut rng = ThreadRng::default();
+            let choose_mat: f32 = rng.gen();
             let center = Vec3::new(
-                a as f32 + 0.9 * random::<f32>(),
+                a as f32 + rng.gen_range(0.0..0.9),
                 0.2,
-                b as f32 + 0.9 * random::<f32>(),
+                b as f32 + rng.gen_range(0.0..0.9),
             );
 
             if glm::length(&(center - Vec3::new(4.0, 0.2, 0.0))) > 0.9 {
                 if choose_mat < 0.8 {
-                    let albedo = random_vector(None).component_mul(&random_vector(None));
+                    let albedo = random_vector(&mut rng, None).component_mul(&random_vector(&mut rng, None));
                     let sphere = Sphere::new(center, 0.2, Lambertian::new(albedo));
                     world.add(Box::new(sphere))
                 } else if choose_mat < 0.95 {
-                    let albedo = random_vector(Some(Interval::new(0.5, 1.0)));
-                    let fuzz = random::<f32>() * 0.5;
+                    let albedo = random_vector(&mut rng, Some(Interval::new(0.5, 1.0)));
+                    let fuzz = rng.gen_range(0.0..0.5);
                     let sphere = Sphere::new(center, 0.2, Metal::new(albedo, fuzz));
                     world.add(Box::new(sphere));
                 } else {
