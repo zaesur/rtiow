@@ -4,6 +4,7 @@ mod camera;
 mod geometry;
 mod material;
 mod math;
+mod ray;
 
 use camera::builder::CameraBuilder;
 use geometry::{sphere::Sphere, world::World};

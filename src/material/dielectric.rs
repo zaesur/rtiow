@@ -1,8 +1,8 @@
 use glm::Vec3;
 use rand::random;
 
-use crate::camera::ray::Ray;
 use crate::geometry::hit_record::HitRecord;
+use crate::ray::ray::Ray;
 
 use super::material::Material;
 use super::reflect::Reflect;
@@ -39,7 +39,8 @@ impl Material for Dielectric {
         let cos_theta = glm::dot(&-unit_direction, &hit_record.normal).min(1.0);
         let sin_theta = (1.0 - cos_theta.powi(2)).sqrt();
 
-        let direction = if ri * sin_theta > 1.0 || Dielectric::reflectance(cos_theta, ri) > random() {
+        let direction = if ri * sin_theta > 1.0 || Dielectric::reflectance(cos_theta, ri) > random()
+        {
             Dielectric::reflect(&unit_direction, &hit_record.normal)
         } else {
             Dielectric::refract(&unit_direction, &hit_record.normal, ri)

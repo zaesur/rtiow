@@ -1,5 +1,5 @@
-use crate::camera::ray::Ray;
 use crate::math::interval::Interval;
+use crate::ray::ray::Ray;
 
 use super::geometry::Geometry;
 use super::hit_record::HitRecord;

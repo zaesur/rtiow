@@ -1,9 +1,9 @@
 use glm::Vec3;
 
 use super::material::Material;
-use crate::camera::ray::Ray;
 use crate::geometry::hit_record::HitRecord;
 use crate::math::utils::random_unit_vector;
+use crate::ray::ray::Ray;
 
 const EPSILON: f32 = 1e-8;
 

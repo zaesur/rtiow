@@ -1,7 +1,7 @@
-use crate::camera::ray::Ray;
 use crate::geometry::geometry::Geometry;
 use crate::math::interval::Interval;
 use crate::math::utils::random_vector_in_unit_disk;
+use crate::ray::ray::Ray;
 
 use glm::Vec3;
 use indicatif::ProgressIterator;

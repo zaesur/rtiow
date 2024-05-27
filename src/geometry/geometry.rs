@@ -1,4 +1,4 @@
-use crate::camera::ray::Ray;
+use crate::ray::ray::Ray;
 use crate::math::interval::Interval;
 use super::hit_record::HitRecord;
 

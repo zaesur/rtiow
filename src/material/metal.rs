@@ -1,6 +1,6 @@
-use crate::camera::ray::Ray;
 use crate::geometry::hit_record::HitRecord;
 use crate::math::utils::random_unit_vector;
+use crate::ray::ray::Ray;
 
 use super::material::Material;
 use super::reflect::Reflect;

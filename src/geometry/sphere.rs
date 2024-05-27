@@ -1,6 +1,6 @@
 use glm::Vec3;
 
-use crate::camera::ray::Ray;
+use crate::ray::ray::Ray;
 use crate::material::material::Material;
 use crate::math::interval::Interval;
 
