@@ -5,8 +5,10 @@ use crate::ray::ray::Ray;
 
 use glm::Vec3;
 use indicatif::ProgressIterator;
-use rand::random;
-use rayon::prelude::*;
+use itertools::Itertools;
+use rand::{Rng, SeedableRng};
+use rand_chacha::ChaCha8Rng;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 pub struct Camera {
     pub image_width: u32,
@@ -27,50 +29,57 @@ impl Camera {
         // Print metadata
         println!("P3\n{} {}\n255", self.image_width, self.image_height);
 
-        // Print data
-        for j in (0..self.image_height).progress() {
-            for i in 0..self.image_width {
+        let pixels = (0..self.image_height)
+            .progress()
+            .cartesian_product(0..self.image_width)
+            .map(|(j, i)| {
                 let pixel_color: Vec3 = (0..self.samples_per_pixel)
                     .into_par_iter()
-                    .map(|_| Camera::ray_color(&self.get_ray(i, j), self.max_depth, world))
+                    .map(|n| {
+                        let mut rng = ChaCha8Rng::seed_from_u64(n as u64);
+                        Camera::ray_color(&self.get_ray(&mut rng, i, j), world, self.max_depth)
+                    })
                     .sum();
-                Camera::write_color(pixel_color / self.samples_per_pixel as f32);
-            }
+                pixel_color / self.samples_per_pixel as f32
+            });
+
+        for pixel_color in pixels {
+            Camera::write_color(pixel_color);
         }
     }
 
-    fn get_ray(&self, i: u32, j: u32) -> Ray {
-        let offset = Camera::sample_square();
+    fn get_ray<T: Rng>(&self, rng: &mut T, i: u32, j: u32) -> Ray {
+        let offset = Camera::sample_square(rng);
         let pixel_sample = self.pixel00_loc
             + ((i as f32 + offset.x) * self.pixel_delta_u)
             + ((j as f32 + offset.y) as f32 * self.pixel_delta_v);
         let ray_origin = if self.defocus_angle <= 0.0 {
             self.center
         } else {
-            self.defocus_disk_sample() 
+            self.defocus_disk_sample()
         };
         let ray_direction = pixel_sample - ray_origin;
 
         Ray::new(ray_origin, ray_direction)
     }
 
-    fn sample_square() -> Vec3 {
-        Vec3::new(random::<f32>() - 0.5, random::<f32>() - 0.5, 0.0)
+    fn sample_square<T: Rng>(rng: &mut T) -> Vec3 {
+        Vec3::new(rng.gen_range(-0.5..=0.5), rng.gen_range(-0.5..=0.5), 0.0)
     }
-    
+
     fn defocus_disk_sample(&self) -> Vec3 {
         let p = random_vector_in_unit_disk();
         self.center + p.x * self.defocus_disk_u + p.y * self.defocus_disk_v
     }
 
-    fn ray_color<T: Geometry>(ray: &Ray, depth: u32, world: &T) -> Vec3 {
+    fn ray_color<T: Geometry>(ray: &Ray, world: &T, depth: u32) -> Vec3 {
         if depth <= 0 {
             Vec3::new(0.0, 0.0, 0.0)
         } else if let Some(hit_record) = world.hit(&ray, &Interval::new(0.001, f32::INFINITY)) {
             if let Some((scattered_ray, attenuation)) =
                 hit_record.material.scatter(ray, &hit_record)
             {
-                attenuation.component_mul(&Camera::ray_color(&scattered_ray, depth - 1, world))
+                attenuation.component_mul(&Camera::ray_color(&scattered_ray, world, depth - 1))
             } else {
                 Vec3::new(0.0, 0.0, 0.0)
             }

@@ -14,6 +14,21 @@ use math::{interval::Interval, utils::random_vector};
 use rand::random;
 
 fn main() {
+    let world = random_scene();
+    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
+    let lookat = Vec3::new(0.0, 0.0, 0.0);
+
+    let camera = CameraBuilder::new()
+        .image_width(400)
+        .vfov(20.0)
+        .defocus_angle(0.6)
+        .focus_dist(10.0)
+        .build(lookfrom, lookat);
+
+    camera.render(&world)
+}
+
+fn random_scene() -> World {
     let ground_material = Lambertian::new(Vec3::new(0.5, 0.5, 0.5));
     let mut world = World::new(vec![Box::new(Sphere::new(
         Vec3::new(0.0, -1000.0, 0.0),
@@ -69,18 +84,5 @@ fn main() {
         material3,
     )));
 
-    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
-    let lookat = Vec3::new(0.0, 0.0, 0.0);
-
-    let camera = CameraBuilder::new()
-        .aspect_ratio(16.0 / 9.0)
-        .image_width(1200)
-        .samples_per_pixel(500)
-        .max_depth(50)
-        .vfov(20.0)
-        .defocus_angle(0.6)
-        .focus_dist(10.0)
-        .build(lookfrom, lookat);
-
-    camera.render(&world)
+    world
 }
