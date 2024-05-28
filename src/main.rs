@@ -6,7 +6,7 @@ mod material;
 mod math;
 mod ray;
 
-use camera::builder::CameraBuilder;
+use camera::camera2::Camera;
 use geometry::{sphere::Sphere, world::World};
 use glm::Vec3;
 use material::{dielectric::Dielectric, lambertian::Lambertian, metal::Metal};
@@ -14,20 +14,30 @@ use math::{interval::Interval, utils::random_vector};
 use rand::{rngs::ThreadRng, Rng};
 
 fn main() {
-    let world = random_scene();
-    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
-    let lookat = Vec3::new(0.0, 0.0, 0.0);
-
-    let camera = CameraBuilder::new()
-        .image_width(400)
-        .vfov(20.0)
-        .defocus_angle(0.6)
-        .focus_dist(10.0)
-        .build(lookfrom, lookat);
-
-    camera.render(&world)
+    const IMAGE_WIDTH: u32 = 400;
+    const IMAGE_HEIGHT: u32 = 400;
+    let material = Lambertian::new(Vec3::new(0.5, 0.5, 0.5));
+    let camera = Camera::new(IMAGE_WIDTH, IMAGE_HEIGHT);
+    let sphere = Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5, material);
+    camera.render(&sphere);
 }
 
+// fn main() {
+//     let world = random_scene();
+//     let lookfrom = Vec3::new(13.0, 2.0, 3.0);
+//     let lookat = Vec3::new(0.0, 0.0, 0.0);
+
+//     let camera = CameraBuilder::new()
+//         .image_width(400)
+//         .vfov(20.0)
+//         .defocus_angle(0.6)
+//         .focus_dist(10.0)
+//         .build(lookfrom, lookat);
+
+//     camera.render(&world)
+// }
+
+#[allow(dead_code)]
 fn random_scene() -> World {
     let ground_material = Lambertian::new(Vec3::new(0.5, 0.5, 0.5));
     let mut world = World::new(vec![Box::new(Sphere::new(
