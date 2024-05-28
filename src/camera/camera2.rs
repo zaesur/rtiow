@@ -17,18 +17,43 @@ pub struct Camera {
 
 impl Camera {
     pub fn new(image_width: u32, image_height: u32, fov: f32) -> Self {
+        let scale_y = 1.0 / image_height as f32;
+        let scale_x = 1.0 / image_width as f32;
         let aspect_ratio = image_width as f32 / image_height as f32;
         let theta = fov.to_radians();
         let h = (theta / 2.0).tan();
-        let scale_y = h * 2.0 / image_height as f32;
-        let scale_x = h * 2.0 * aspect_ratio / image_width as f32;
 
         #[rustfmt::skip]
-        let raster_to_camera = Mat3::new(
-            scale_x,  0.0,     -aspect_ratio * h, // Map (0..N) to (-1*AR.. 1*AR)
-            0.0,     -scale_y,  h,                // Map (0..M) to (1..-1)
-            0.0,      0.0,      1.0,              // Don't touch Z axis
+        // NDC: Normalized Device Coordinates.
+        // X axis: (0..X) remapped to (0..1).
+        // Y axis: (0..Y) remapped to (0..1).
+        let raster_to_ndc = Mat3::new(
+            scale_x, 0.0,     0.0,                      
+            0.0,     scale_y, 0.0,
+            0.0,     0.0,     1.0,
         );
+
+        #[rustfmt::skip]
+        // X axis: (0..1) remapped to (-1..1), where AR = aspect ratio.
+        // Y axis: (0..1) remapped to (1..-1).
+        let ndc_to_screen = Mat3::new(
+            2.0,  0.0, -1.0,
+            0.0, -2.0,  1.0,
+            0.0,  0.0,  1.0,
+        );
+
+        #[rustfmt::skip]
+        // AR: aspect ratio.
+        // H: tan(fov / 2).
+        // X axis: (-1..1) remapped to (-AR..AR).
+        // Y axis: (1..-1) remapped to (H..-H).
+        let screen_to_camera = Mat3::new(
+            aspect_ratio * h, 0.0, 0.0,
+            0.0,              h,   0.0,
+            0.0,              0.0, 1.0,
+        );
+
+        let raster_to_camera = screen_to_camera * ndc_to_screen * raster_to_ndc;
 
         #[rustfmt::skip]
         let camera_to_world = Mat4::new(
