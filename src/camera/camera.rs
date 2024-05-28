@@ -17,11 +17,13 @@ use crate::ray::ray::Ray;
 pub struct Camera {
     image_width: u32,
     image_height: u32,
-    raster_to_world: Mat4,
+    position: Vec3,
+    raster_to_camera: Mat3,
+    camera_to_world: Mat4,
 }
 
 impl Camera {
-    pub fn new(image_width: u32, image_height: u32, fov: f32) -> Self {
+    pub fn new(image_width: u32, image_height: u32, fov: f32, position: Vec3) -> Self {
         let scale_y = 1.0 / image_height as f32;
         let scale_x = 1.0 / image_width as f32;
         let aspect_ratio = image_width as f32 / image_height as f32;
@@ -33,7 +35,7 @@ impl Camera {
         // X axis: (0..X) remapped to (0..1).
         // Y axis: (0..Y) remapped to (0..1).
         let raster_to_ndc = Mat3::new(
-            scale_x, 0.0,     0.0,                      
+            scale_x, 0.0,     0.0,
             0.0,     scale_y, 0.0,
             0.0,     0.0,     1.0,
         );
@@ -59,21 +61,14 @@ impl Camera {
         );
 
         let raster_to_camera = screen_to_camera * ndc_to_screen * raster_to_ndc;
-
-        #[rustfmt::skip]
-        let camera_to_world = Mat4::new(
-            1.0, 0.0, 0.0, 0.0,
-            0.0, 1.0, 0.0, 0.0,
-            0.0, 0.0, 1.0, 0.0,
-            0.0, 0.0, 0.0, 1.0,
-        );
-
-        let raster_to_world = camera_to_world * glm::mat3_to_mat4(&raster_to_camera);
+        let camera_to_world = glm::translation(&position);
 
         Camera {
             image_width,
             image_height,
-            raster_to_world,
+            position,
+            raster_to_camera,
+            camera_to_world,
         }
     }
 
@@ -120,16 +115,14 @@ impl Camera {
         }
     }
 
-
     fn get_ray<T: Rng>(&self, rng: &mut T, x: u32, y: u32) -> Ray {
         let offset_x: f32 = rng.gen();
         let offset_y: f32 = rng.gen();
         let p_screen = Vec4::new(x as f32 + offset_x, y as f32 + offset_y, 1.0, 1.0);
-        let p_world = self.raster_to_world * p_screen;
+        let p_world = self.camera_to_world * glm::mat3_to_mat4(&self.raster_to_camera) * p_screen;
 
-        let origin = Vec3::repeat(0.0);
-        let direction = Vec3::new(p_world.x, p_world.y, -1.0) - origin;
-        Ray::new(origin, direction.normalize())
+        let direction = Vec3::new(p_world.x, p_world.y, -1.0) - self.position;
+        Ray::new(self.position, direction.normalize())
     }
 
     fn write_color(color: Vec3) {
@@ -147,7 +140,7 @@ mod tests {
     #[test]
     fn square_camera_test_00() {
         let mut rng = StepRng::new(0, 0);
-        let camera = Camera::new(10, 10, 90.0);
+        let camera = Camera::new(10, 10, 90.0, Vec3::repeat(0.0));
         let ray = camera.get_ray(&mut rng, 0, 0);
 
         let expected = Vec3::new(-1.0, 1.0, -1.0).normalize();
@@ -166,7 +159,7 @@ mod tests {
     #[test]
     fn square_camera_test99() {
         let mut rng = StepRng::new(0, 0);
-        let camera = Camera::new(10, 10, 90.0);
+        let camera = Camera::new(10, 10, 90.0, Vec3::repeat(0.0));
         let ray = camera.get_ray(&mut rng, 9, 9);
 
         let expected = Vec3::new(0.8, -0.8, -1.0).normalize();
@@ -185,7 +178,7 @@ mod tests {
     #[test]
     fn rectangular_camera_test00() {
         let mut rng = StepRng::new(0, 0);
-        let camera = Camera::new(20, 10, 90.0);
+        let camera = Camera::new(20, 10, 90.0, Vec3::repeat(0.0));
         let ray = camera.get_ray(&mut rng, 0, 0);
 
         let expected = Vec3::new(-2.0, 1.0, -1.0).normalize();
@@ -204,7 +197,7 @@ mod tests {
     #[test]
     fn rectangular_camera_test99() {
         let mut rng = StepRng::new(0, 0);
-        let camera = Camera::new(20, 10, 90.0);
+        let camera = Camera::new(20, 10, 90.0, Vec3::repeat(0.0));
         let ray = camera.get_ray(&mut rng, 19, 9);
 
         let expected = Vec3::new(1.8, -0.8, -1.0).normalize();

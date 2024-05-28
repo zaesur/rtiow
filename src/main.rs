@@ -14,12 +14,14 @@ use math::{interval::Interval, utils::random_vector};
 use rand::{rngs::ThreadRng, Rng};
 
 fn main() {
-    const IMAGE_WIDTH: u32 = 800;
-    const IMAGE_HEIGHT: u32 = 400;
+    const IMAGE_WIDTH: u32 = 600;
+    const IMAGE_HEIGHT: u32 = 275;
     const SAMPLES_PER_PIXEL: u32 = 50;
     const MAX_DEPTH: u32 = 10;
     const FOV: f32 = 90.0;
-    let camera = Camera::new(IMAGE_WIDTH, IMAGE_HEIGHT, FOV);
+    
+    let position = Vec3::new(-0.5, 0.0, 0.0);
+    let camera = Camera::new(IMAGE_WIDTH, IMAGE_HEIGHT, FOV, position);
     let ground_material = Lambertian::new(Vec3::repeat(0.5));
     let sphere_material = Lambertian::new(Vec3::repeat(0.5));
     let sphere = Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5, sphere_material);
