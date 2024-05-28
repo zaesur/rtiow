@@ -16,12 +16,17 @@ use rand::{rngs::ThreadRng, Rng};
 fn main() {
     const IMAGE_WIDTH: u32 = 800;
     const IMAGE_HEIGHT: u32 = 400;
+    const SAMPLES_PER_PIXEL: u32 = 50;
     const MAX_DEPTH: u32 = 10;
-    const FOV: f32 = 120.0;
-    let material = Lambertian::new(Vec3::new(0.5, 0.5, 0.5));
+    const FOV: f32 = 90.0;
     let camera = Camera::new(IMAGE_WIDTH, IMAGE_HEIGHT, FOV);
-    let sphere = Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5, material);
-    camera.render(&sphere, MAX_DEPTH);
+    let ground_material = Lambertian::new(Vec3::repeat(0.5));
+    let sphere_material = Lambertian::new(Vec3::repeat(0.5));
+    let sphere = Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5, sphere_material);
+    let ground= Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0, ground_material);
+    let world = World::new(vec![Box::new(sphere), Box::new(ground)]);
+
+    camera.render(&world, MAX_DEPTH, SAMPLES_PER_PIXEL);
 }
 
 // fn main() {
