@@ -15,15 +15,16 @@ pub struct Camera {
 
 impl Camera {
     pub fn new(image_width: u32, image_height: u32) -> Self {
-        let scale_x = 2.0 / image_width as f32;
+        let aspect_ratio = image_width as f32 / image_height as f32;
         let scale_y = 2.0 / image_height as f32;
+        let scale_x = 2.0 * aspect_ratio / image_width as f32;
 
         #[rustfmt::skip]
         let raster_to_world = Mat3::new(
-            scale_x,  0.0,     -1.0, // Map (0..N) to (-1.. 1)
-            0.0,     -scale_y,  1.0, // Map (0..M) to ( 1..-1)
-            0.0,      0.0,      1.0  // Don't touch Z axis
-        ); 
+            scale_x,  0.0,     -aspect_ratio, // Map (0..N) to (-1*AR.. 1*AR)
+            0.0,     -scale_y,  1.0,          // Map (0..M) to (1..-1)
+            0.0,      0.0,      1.0,          // Don't touch Z axis
+        );
 
         Camera {
             image_width,
@@ -43,7 +44,7 @@ impl Camera {
                 let ray = self.get_ray(x, y);
                 let color = self.ray_color(&ray, world);
                 color
-        });
+            });
 
         for pixel_color in pixels {
             Camera::write_color(pixel_color);
@@ -80,16 +81,74 @@ mod tests {
     use super::*;
 
     #[test]
-    fn ray_test_00() {
+    fn square_camera_test_00() {
         let camera = Camera::new(10, 10);
         let ray = camera.get_ray(0, 0);
-        assert_eq!(ray.direction, Vec3::new(-0.9, 0.9, -1.0));
+
+        let expected = Vec3::new(-0.9, 0.9, -1.0);
+        let given = ray.direction;
+
+        assert!(
+            glm::equal_eps(&expected, &given, glm::epsilon())
+                .iter()
+                .all(|x| *x),
+            "expected {}, given {}",
+            expected,
+            given
+        )
     }
 
     #[test]
-    fn ray_test_99() {
+    fn square_camera_test99() {
         let camera = Camera::new(10, 10);
         let ray = camera.get_ray(9, 9);
-        assert_eq!(ray.direction, Vec3::new(0.9, -0.9, -1.0))
+
+        let expected = Vec3::new(0.9, -0.9, -1.0);
+        let given = ray.direction;
+
+        assert!(
+            glm::equal_eps(&expected, &given, glm::epsilon())
+                .iter()
+                .all(|x| *x),
+            "expected {}, given {}",
+            expected,
+            given
+        )
+    }
+
+    #[test]
+    fn rectangular_camera_test00() {
+        let camera = Camera::new(20, 10);
+        let ray = camera.get_ray(0, 0);
+
+        let expected = Vec3::new(-1.9, 0.9, -1.0);
+        let given = ray.direction;
+
+        assert!(
+            glm::equal_eps(&expected, &given, glm::epsilon())
+                .iter()
+                .all(|x| *x),
+            "expected {}, given {}",
+            expected,
+            given
+        )
+    }
+
+    #[test]
+    fn rectangular_camera_test99() {
+        let camera = Camera::new(20, 10);
+        let ray = camera.get_ray(19, 9);
+
+        let expected = Vec3::new(1.9, -0.9, -1.0);
+        let given = ray.direction;
+
+        assert!(
+            glm::equal_eps(&expected, &given, glm::epsilon())
+                .iter()
+                .all(|x| *x),
+            "expected {}, given {}",
+            expected,
+            given
+        )
     }
 }
