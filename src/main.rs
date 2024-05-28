@@ -6,7 +6,7 @@ mod material;
 mod math;
 mod ray;
 
-use camera::camera2::Camera;
+use camera::camera::Camera;
 use geometry::{sphere::Sphere, world::World};
 use glm::Vec3;
 use material::{dielectric::Dielectric, lambertian::Lambertian, metal::Metal};
@@ -28,21 +28,6 @@ fn main() {
 
     camera.render(&world, MAX_DEPTH, SAMPLES_PER_PIXEL);
 }
-
-// fn main() {
-//     let world = random_scene();
-//     let lookfrom = Vec3::new(13.0, 2.0, 3.0);
-//     let lookat = Vec3::new(0.0, 0.0, 0.0);
-
-//     let camera = CameraBuilder::new()
-//         .image_width(400)
-//         .vfov(20.0)
-//         .defocus_angle(0.6)
-//         .focus_dist(10.0)
-//         .build(lookfrom, lookat);
-
-//     camera.render(&world)
-// }
 
 #[allow(dead_code)]
 fn random_scene() -> World {
