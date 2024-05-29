@@ -4,9 +4,8 @@ use glm::Vec3;
 use glm::Vec4;
 use indicatif::ProgressIterator;
 use itertools::Itertools;
+use rand::rngs::ThreadRng;
 use rand::Rng;
-use rand::SeedableRng;
-use rand_chacha::ChaCha8Rng;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 
@@ -72,6 +71,25 @@ impl Camera {
         }
     }
 
+    pub fn lookat(&mut self, lookat: Vec3) {
+        let arbitrary_up = Vec3::new(0.0, 1.0, 0.0);
+        let forward = (self.position - lookat).normalize();
+
+        if glm::are_collinear(&forward, &arbitrary_up, glm::epsilon()) {
+            panic!("The view direction and up vector are collinear")
+        }
+
+        let right = glm::cross(&arbitrary_up, &forward).normalize();
+        let up = glm::cross(&forward, &right);
+        let camera_to_world = Mat4::from_columns(&[
+            glm::vec3_to_vec4(&right),
+            glm::vec3_to_vec4(&up),
+            glm::vec3_to_vec4(&forward),
+            Vec4::new(self.position.x, self.position.y, self.position.z, 1.0),
+        ]);
+        self.camera_to_world = camera_to_world;
+    }
+
     pub fn render<T: Geometry>(&self, world: &T, max_depth: u32, samples_per_pixel: u32) {
         // Print metadata
         println!("P3\n{} {}\n255", self.image_width, self.image_height);
@@ -82,8 +100,8 @@ impl Camera {
             .map(|(y, x)| {
                 let pixel_color: Vec3 = (0..samples_per_pixel)
                     .into_par_iter()
-                    .map(|n| {
-                        let mut rng = ChaCha8Rng::seed_from_u64(n as u64);
+                    .map(|_| {
+                        let mut rng = ThreadRng::default();
                         let ray = self.get_ray(&mut rng, x, y);
                         Camera::ray_color(&ray, world, max_depth)
                     })
@@ -99,7 +117,7 @@ impl Camera {
     fn ray_color<T: Geometry>(ray: &Ray, world: &T, depth: u32) -> Vec3 {
         if depth <= 0 {
             Vec3::repeat(0.0)
-        } else if let Some(hit_record) = world.hit(&ray, &Interval::new(0.001, f32::INFINITY)) {
+        } else if let Some(hit_record) = world.hit(&ray, &Interval::new(0.001, f32::MAX)) {
             if let Some((scattered_ray, attenuation)) =
                 hit_record.material.scatter(ray, &hit_record)
             {
@@ -119,13 +137,17 @@ impl Camera {
         let offset_y: f32 = rng.gen();
         let p_screen = Vec3::new(x as f32 + offset_x, y as f32 + offset_y, 1.0);
         let p_camera = self.raster_to_camera * p_screen;
-        let direction = self.camera_to_world * Vec4::new(p_camera.x, p_camera.y, -1.0, 1.0);
+        let direction = self.camera_to_world * Vec4::new(p_camera.x, p_camera.y, -1.0, 0.0);
         Ray::new(self.position, direction.xyz().normalize())
     }
 
     fn write_color(color: Vec3) {
-        let corrected = color.map(|c| (c.sqrt().clamp(0.0, 1.0) * 255.0) as u32);
-        println!("{} {} {}", corrected.x, corrected.y, corrected.z);
+        let gamma_corrected = glm::sqrt(&color);
+        let rgb_color = glm::clamp(&gamma_corrected, 0.0, 1.0) * 255.0;
+        println!(
+            "{} {} {}",
+            rgb_color.x as u32, rgb_color.y as u32, rgb_color.z as u32
+        );
     }
 }
 
