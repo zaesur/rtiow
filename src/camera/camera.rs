@@ -98,35 +98,33 @@ impl Camera {
 
     fn ray_color<T: Geometry>(ray: &Ray, world: &T, depth: u32) -> Vec3 {
         if depth <= 0 {
-            Vec3::new(0.0, 0.0, 0.0)
+            Vec3::repeat(0.0)
         } else if let Some(hit_record) = world.hit(&ray, &Interval::new(0.001, f32::INFINITY)) {
             if let Some((scattered_ray, attenuation)) =
                 hit_record.material.scatter(ray, &hit_record)
             {
                 attenuation.component_mul(&Camera::ray_color(&scattered_ray, world, depth - 1))
             } else {
-                Vec3::new(0.0, 0.0, 0.0)
+                Vec3::repeat(0.0)
             }
         } else {
             let unit_direction = ray.direction;
             let a = 0.5 * (unit_direction.y + 1.0);
-
-            (1.0 - a) * Vec3::new(1.0, 1.0, 1.0) + a * Vec3::new(0.5, 0.7, 1.0)
+            glm::lerp(&Vec3::repeat(1.0), &Vec3::new(0.5, 0.7, 1.0), a)
         }
     }
 
     fn get_ray<T: Rng>(&self, rng: &mut T, x: u32, y: u32) -> Ray {
         let offset_x: f32 = rng.gen();
         let offset_y: f32 = rng.gen();
-        let p_screen = Vec4::new(x as f32 + offset_x, y as f32 + offset_y, 1.0, 1.0);
-        let p_world = self.camera_to_world * glm::mat3_to_mat4(&self.raster_to_camera) * p_screen;
-
-        let direction = Vec3::new(p_world.x, p_world.y, -1.0) - self.position;
-        Ray::new(self.position, direction.normalize())
+        let p_screen = Vec3::new(x as f32 + offset_x, y as f32 + offset_y, 1.0);
+        let p_camera = self.raster_to_camera * p_screen;
+        let direction = self.camera_to_world * Vec4::new(p_camera.x, p_camera.y, -1.0, 1.0);
+        Ray::new(self.position, direction.xyz().normalize())
     }
 
     fn write_color(color: Vec3) {
-        let corrected = color.map(|c| (c.sqrt().clamp(0.0, 0.999) * 256.0) as u32);
+        let corrected = color.map(|c| (c.sqrt().clamp(0.0, 1.0) * 255.0) as u32);
         println!("{} {} {}", corrected.x, corrected.y, corrected.z);
     }
 }
