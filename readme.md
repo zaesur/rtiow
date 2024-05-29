@@ -38,7 +38,7 @@ four dimensional matrix multiplication, I am happy that the resulting code is mo
 (such as 'camera-to-world matrix', 'look at', and so on).
 This will make it easier to apply these lessons to future projects.
 
-Those interested in the original implementation may still find it at the [V1][https://docs.rs/nalgebra-glm/latest/nalgebra_glm/] branch.
+Those interested in the original implementation may still find it at the [V1](https://docs.rs/nalgebra-glm/latest/nalgebra_glm/) branch.
 
 ## Usage
 
