@@ -3,7 +3,6 @@ use crate::math::utils::random_unit_vector;
 use crate::ray::ray::Ray;
 
 use super::material::Material;
-use super::reflect::Reflect;
 use glm::Vec3;
 use rand::rngs::ThreadRng;
 
@@ -18,12 +17,10 @@ impl Metal {
     }
 }
 
-impl Reflect for Metal {}
-
 impl Material for Metal {
     fn scatter(&self, ray: &Ray, hit_record: &HitRecord) -> Option<(Ray, Vec3)> {
         let mut rng = ThreadRng::default();
-        let reflection = Metal::reflect(&ray.direction, &hit_record.normal);
+        let reflection = glm::reflect_vec(&ray.direction, &hit_record.normal);
         let reflected = reflection.normalize() + (self.fuzz * random_unit_vector(&mut rng));
         let scattered = Ray::new(hit_record.p, reflected);
 

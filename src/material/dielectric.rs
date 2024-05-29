@@ -5,8 +5,6 @@ use crate::geometry::hit_record::HitRecord;
 use crate::ray::ray::Ray;
 
 use super::material::Material;
-use super::reflect::Reflect;
-use super::refract::Refract;
 
 pub struct Dielectric {
     refraction_index: f32,
@@ -24,9 +22,6 @@ impl Dielectric {
     }
 }
 
-impl Reflect for Dielectric {}
-impl Refract for Dielectric {}
-
 impl Material for Dielectric {
     fn scatter(&self, ray: &Ray, hit_record: &HitRecord) -> Option<(Ray, Vec3)> {
         let attenuation = Vec3::new(1.0, 1.0, 1.0);
@@ -41,9 +36,9 @@ impl Material for Dielectric {
 
         let direction = if ri * sin_theta > 1.0 || Dielectric::reflectance(cos_theta, ri) > random()
         {
-            Dielectric::reflect(&unit_direction, &hit_record.normal)
+            glm::reflect_vec(&unit_direction, &hit_record.normal)
         } else {
-            Dielectric::refract(&unit_direction, &hit_record.normal, ri)
+            glm::refract_vec(&unit_direction, &hit_record.normal, ri)
         };
 
         let scattered = Ray::new(hit_record.p, direction);
