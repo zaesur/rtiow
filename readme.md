@@ -1,7 +1,7 @@
 # Ray Tracing in One Weekend
 
 ![render](https://github.com/zaesur/rtiow/blob/main/render.png?raw=true)
-https://github.com/zaesur/rtiow/tree/V1?tab=readme-ov-file#compilation
+
 ## Index
 1. [Description](#description)
 2. [Usage](#usage)
