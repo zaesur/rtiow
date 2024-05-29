@@ -3,9 +3,9 @@
 ![render](https://github.com/zaesur/rtiow/blob/main/render.png?raw=true)
 https://github.com/zaesur/rtiow/tree/V1?tab=readme-ov-file#compilation
 ## Index
-1. [Description](https://github.com/zaesur/rtiow/tree/main?tab=readme-ov-file#description)
-2. [Usage](https://github.com/zaesur/rtiow/tree/main?tab=readme-ov-file#usage)
-3. [Sources](https://github.com/zaesur/rtiow/tree/main?tab=readme-ov-file#sources)
+1. [Description](#description)
+2. [Usage](#usage)
+3. [Sources](#sources)
 
 ## Description
 An implementation of Ray Tracing in One Weekend, translated to Rust.
